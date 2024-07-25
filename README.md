@@ -7,7 +7,8 @@
 This script works only in Windows 11 + WSL 2
 
 
-# Before using, please, read all files. 
+
+## Before using, please, read all files. 
 
 
 ## USAGE
@@ -26,6 +27,7 @@ Next, clone this repo and execute powershell script:
 ```powershell
 git clone https://github.com/Zandler/dotfiles.git 
 cd dotfiles 
-.
+.\windows-setup-powershell.ps1
+
 ```
 
