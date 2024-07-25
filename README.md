@@ -12,11 +12,20 @@ This script works only in Windows 11 + WSL 2
 
 ## USAGE
 
+First, you need to set execition policy in powershell.
+
 Execute this command:
 ```powershell
 
-    . { iwr -Uri "teste.com" -Outfile bmg-powershell-setup.ps1 } | iex; bmg-powershell-setup.ps1 
+    Set-ExecutionPlocy Unrestricted
 
 ```
 
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+Next, clone this repo and execute powershell script:
+
+```powershell
+git clone https://github.com/Zandler/dotfiles.git 
+cd dotfiles 
+.
+```
+

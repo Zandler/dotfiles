@@ -7,10 +7,10 @@ ENDCOLOR='\033[0m'
 update() {
     clear
    echo -e "${ORANGE}
-    ############################
-    #  Atualizacao do sistema  #
-    ############################${ENDCOLOR}"
-
+    ##################
+    #  UPDATE SYSTEM #
+    ##################${ENDCOLOR}"
+     sleep 3 
     sudo apt update && sudo apt upgrade -y
 }
 
@@ -31,16 +31,22 @@ install_software() {
         "python3-pip"
         "fonts-jetbrains-mono"
     )
+
     clear
    echo -e "${PURPLE}
-    ############################
-    #  Instalacao de softwares #
-    ############################${ENDCOLOR}"
+    #####################
+    #  INSTALL PACKAGES #
+    #####################${ENDCOLOR}"
+
+    sleep 3
 
     for soft in "${SOFTWARES[@]}"; do 
 
         sudo apt install -y $soft
     done
+    echo "Finish"
+
+    sleep 3
 }
 
 install_docker() {
@@ -50,6 +56,8 @@ install_docker() {
     ######################
     #  Instalacao Docker #
     ######################${ENDCOLOR}"
+
+    sleep 3
 
     echo "🐋 Verificando Docker"
     # Verifica se o Docker está instalado
@@ -99,9 +107,11 @@ install_frontend() {
     #  NODE + NPM + YARN #
     ######################${ENDCOLOR}"
 
+    sleep 3
+
     # Verifica se o diretório do NVM existe
     if [ ! -d "/home/"${HOME}"/.nvm" ]; then
-        echo "Instalando NVM..."
+        echo "Install NVM..."
         # Instala o NVM
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 
@@ -118,8 +128,8 @@ install_frontend() {
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-        echo "NVM instalado e configurado."
-
+        echo "${PURPLE}NVM installed.${ENDCOLOR}"
+        sleep 3
         # Instala versão LTS node
         nvm install node
         # Instala versão mais atual npm
@@ -136,27 +146,26 @@ install_frontend() {
 
         source "$HOME/.bashrc"
     else
-        echo "NVM já está instalado."
+        echo "NVM already installed"
     fi
+
+    echo "Node step finish"
 }
 
 install_terminal() {
     clear 
 
     echo -e "${CYAN}
-    #############################
-    #  Configuracao do terminal #
-    #############################${ENDCOLOR}"
+    ####################
+    #  TERMINAL CONFIG #
+    ####################${ENDCOLOR}"
     
+    sleep 3
+
     echo 'eval "$(starship init bash)" ' >> "$HOME/.bashrc"
 
     curl -sS https://starship.rs/install.sh | sh
 
-    #source "/home/"${SUDO_USER}"/.bashrc"
-
-    #mkdir -p "/home/"${SUDO_USER}"/.config"
-
-    #starship preset tokyo-night -o "/home/"${SUDO_USER}"/.config/starship.toml"
 
     source "$HOME/.bashrc"
 }
@@ -167,13 +176,13 @@ header() {
 
     echo -e "${ORANGE}
      ###############################################
-     #   Banco Bmg                                 #
-     #   Versão: 0.9                               #
-     #   $(date +'%d/%m/%Y')                                #
-     #  Script para configuracao do ambiente local # 
+     #   Dotfiles / Linux                          #
+     #   Author: Zandler <zandler@outlook.com>     #
+     #   Version: 0.9                              #
+     #   $(date +'%d/%m/%Y')                                # 
      ###############################################${ENDCOLOR}"
 
-    #sleep 3
+    sleep 3
 
 }
 
@@ -186,3 +195,7 @@ install_terminal
 install_frontend
 
 source $HOME/.bashrc
+
+echo "SUCCESS"
+
+sleep 5

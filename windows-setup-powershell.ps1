@@ -22,8 +22,7 @@ function TestAdminRights {
               ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     
 }
-function InstallDefaultSoftware
-{
+function InstallDefaultSoftware {
     Clear-Host
 
     write-host "
@@ -60,18 +59,22 @@ function InstallDefaultSoftware
     
 }
 
-function InstallWsl
-{
-    $select = Read-Host "
+function InstallWsl {
+    Clear-Host
+
+    write-host "
 I need to remove and install again (like ansible/terraform).
 All your data will be lost.
 Continue? (y/N)" -ForegroundColor DarkCyan
 
-    wsl --unregister Ubuntu 
+    $select = Read-Host 
 
     if ($select -ne "y") {
         Exit-PSHostProcess
     }
+
+    wsl --unregister Ubuntu 
+    wsl --set-default-version 2
 
     write-host "
 WSL erased. 
@@ -111,7 +114,7 @@ function CheckRequirements($User, $Email)
             Exit
     }
     
-    write-host "Check Execution Policy"
+    write-host "Check Execution Policy" -ForegroundColor DarkCyany
     
     if ((Get-ExecutionPolicy) -ne  "Unrestricted")
     {
@@ -167,7 +170,16 @@ function Main
 
     InstallWsl
     
-    wsl -e ./bmg-wsl-setup.sh
+    wsl -e ./wsl-setup-bash.sh
+
+    wsl --shutdown
+
+    write-host "
+    
+    Windows / Powershell / Wsl 
+    Success.
+    Now you can use with some beauty ! ! ! 
+    "
 }
 
 Main 
