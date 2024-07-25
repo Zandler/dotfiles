@@ -13,12 +13,12 @@ This script works only in Windows 11 + WSL 2
 
 ## USAGE
 
-First, you need to set execition policy in powershell.
+First, you need to set execution policy in powershell.
 
 Execute this command:
 ```powershell
 
-    Set-ExecutionPlocy Unrestricted
+    Set-ExecutionPolicy Unrestricted
 
 ```
 
