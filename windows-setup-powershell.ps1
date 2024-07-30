@@ -67,6 +67,7 @@ I need to remove and install again (like ansible/terraform).
 All your data will be lost.
 Continue? (y/N)" -ForegroundColor DarkCyan
 
+
     $select = Read-Host 
 
     if ($select -ne "y") {
@@ -78,9 +79,19 @@ Continue? (y/N)" -ForegroundColor DarkCyan
 
     write-host "
 WSL erased. 
-Install again wsl. "
+Install WSL. "
+
+    write-host "
+When WSL install finish you need to setup username and password.
+Create your username and password, after, input 'exit' for leave wsl. 
+Don't worry after exit bash this automatic execute another to configure bash.
+Press any key for continue
+"  -ForegroundColor Red
+    Read-Host
+
     wsl --install -d Ubuntu 
     Start-Sleep -Seconds 3
+
            
 } 
 
@@ -173,13 +184,15 @@ function Main
     wsl -e ./wsl-setup-bash.sh
 
     wsl --shutdown
-
+    
+    Clear-Host
+    
     write-host "
     
     Windows / Powershell / Wsl 
     Success.
     Now you can use with some beauty ! ! ! 
-    "
+    " -ForegroundColor DarkCyan
 }
 
 Main 
