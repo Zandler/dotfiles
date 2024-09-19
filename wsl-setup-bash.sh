@@ -15,6 +15,7 @@ update() {
 }
 
 install_software() {
+    
     SOFTWARES=(
         "git"
         "vim"
@@ -29,8 +30,7 @@ install_software() {
         "dotnet-sdk-6.0"
         "python3-venv"
         "python3-pip"
-        "fonts-jetbrains-mono"
-    )
+        "fonts-jetbrains-mono")
 
     clear
    echo -e "${PURPLE}
