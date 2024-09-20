@@ -125,7 +125,7 @@ function CheckRequirements($User, $Email)
             Exit
     }
     
-    write-host "Check Execution Policy" -ForegroundColor DarkCyany
+    write-host "Check Execution Policy" -ForegroundColor DarkCyan
     
     if ((Get-ExecutionPolicy) -ne  "Unrestricted")
     {
