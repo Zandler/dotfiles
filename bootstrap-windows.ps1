@@ -181,7 +181,7 @@ function Main
 
     InstallWsl
     
-    wsl -e ./wsl-setup-bash.sh
+    wsl -e /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Zandler/dotfiles/refs/heads/main/bootstrap-ubuntu.sh)"
 
     wsl --shutdown
     
