@@ -1,15 +1,21 @@
 # DOTFILES
 
 
-## WINDOWS / MAC / GNU/Linux
+
+## Description
+
+After format many times windows with wsl i create this two scripts (windows and linux bootstrap). They config all first things in my enviroment. Must someone has better than me, but this, at now solve my problem.
 
 
-This script works only in Windows 11 + WSL 2
+
+## Before using, please, read all two scripts. 
+
+### This script purge  wsl Ubuntu environment. 
 
 
-
-## Before using, please, read all files. 
-
+## Requirements
+Windows 11 with local administrator
+Ubuntu  22.04 
 
 ## USAGE
 
@@ -21,13 +27,37 @@ Execute this command:
     Set-ExecutionPolicy Unrestricted
 
 ```
+**If you cannot change, please check if you has admin local**
 
-Next, clone this repo and execute powershell script:
+this script do: 
+
+- Config Terminal
+- install some tools like vscode, powershell preview
+- Oh-my-posh and configure theme
+- Wsl2 (Ubuntu LTS)\
+
+You can execute opne powershell terminal e paste this command: 
 
 ```powershell
-git clone https://github.com/Zandler/dotfiles.git 
-cd dotfiles 
-.\windows-setup-powershell.ps1
+
+iwr -Uri "https://raw.githubusercontent.com/Zandler/dotfiles/refs/heads/main/bootstrap-windows.ps1" -OutFile bootstrap-windows.ps1; .\bootstrap-windows.ps1 
 
 ```
+
+
+After config powershell environment, start wsl and execute this command:
+
+```bash
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Zandler/dotfiles/refs/heads/main/bootstrap-ubuntu.sh)"
+
+```
+
+Things inside this script:
+- Update system
+- Install some softwares lik httpie, poetry etc... 
+- Install and configure NVM with node LTS 
+- Install terminal spacheship and configure theme 
+- Install docker 
+
 
