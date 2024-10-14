@@ -17,6 +17,7 @@ update() {
 install_software() {
     
     SOFTWARES=(
+        "build-essential",
         "git"
         "vim"
         "zsh"
