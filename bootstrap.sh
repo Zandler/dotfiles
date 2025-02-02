@@ -104,7 +104,7 @@ install_snap_packages() {
             "black"
             "aws-cli"
             "terragrunt"
-            "Dotnet-sdk"
+            "dotnet-sdk --channel=lts/stable"
             "httpie"
             )
 
