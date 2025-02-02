@@ -21,7 +21,7 @@ Copy this line and execute in bash.
 You need do accept with enter some repos and sudo with password, so at know, you cannot start and go out. It`s a todo for me solve this step.
 
 ```bash
- bash -c "$(curl -fsSL https://raw.githubusercontent.com/Zandler/dotfiles/refs/heads/main/install.sh)"
+ sh -c "$(curl -fsSL https://raw.githubusercontent.com/Zandler/dotfiles/refs/heads/main/install.sh)"
 
 ```
 
