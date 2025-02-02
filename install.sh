@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+set -e
 
 clone_repo() {
     git clone https://github.com/zandler/dotfiles ~/.dotfiles

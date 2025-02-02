@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 check_command() {
     echo "Check if $1 is installed"
 
