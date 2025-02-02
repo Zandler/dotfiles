@@ -1,0 +1,314 @@
+[language-server]
+bash-language-server = { command = "bash-language-server", args = ["start"] }
+docker-langserver = { command = "docker-langserver", args = ["--stdio"] }
+docker-compose-langserver = { command = "docker-compose-langserver", args = ["--stdio"]}
+jq-lsp = { command = "jq-lsp" }
+jsonnet-language-server = { command = "jsonnet-language-server", args= ["-t", "--lint"] }
+marksman = { command = "marksman", args = ["server"] }
+pylsp = { command = "pylsp" }
+ruff = { command = "ruff", args = ["server"] }
+tailwindcss-ls = { command = "tailwindcss-language-server", args = ["--stdio"] }
+terraform-ls = { command = "terraform-ls", args = ["serve"] }
+vscode-css-language-server = { command = "vscode-css-language-server", args = ["--stdio"], config = { provideFormatter = true, css = { validate = { enable = true } } } }
+vscode-html-language-server = { command = "vscode-html-language-server", args = ["--stdio"], config = { provideFormatter = true } }
+vscode-json-language-server = { command = "vscode-json-language-server", args = ["--stdio"], config = { provideFormatter = true, json = { validate = { enable = true } } } }
+vuels = { command = "vue-language-server", args = ["--stdio"], config = { typescript = { tsdk = "node_modules/typescript/lib/" } } }
+yaml-language-server = { command = "yaml-language-server", args = ["--stdio"] }
+helm_ls = { command = "helm_ls", args = ["serve"] }
+ember-language-server = { command = "ember-language-server", args = ["--stdio"] }
+
+[language-server.ansible-language-server]
+command = "ansible-language-server"
+args = ["--stdio"]
+
+[[language]]
+name = "go"
+scope = "source.go"
+injection-regex = "go"
+file-types = ["go"]
+roots = ["go.work", "go.mod"]
+auto-format = true
+comment-token = "//"
+block-comment-tokens = { start = "/*", end = "*/" }
+language-servers = [ "gopls", "golangci-lint-lsp" ]
+# TODO: gopls needs utf-8 offsets?
+indent = { tab-width = 4, unit = "\t" }
+formatter = { command = "goimports" }
+#transport = "tcp"
+#command = "dlv"
+# args = ["dap"]
+#port-arg = "-l 127.0.0.1:{}"
+
+[[grammar]]
+name = "go"
+source = { git = "https://github.com/tree-sitter/tree-sitter-go", rev = "64457ea6b73ef5422ed1687178d4545c3e91334a" }
+
+[[language]]
+name = "gomod"
+scope = "source.gomod"
+injection-regex = "gomod"
+file-types = [{ glob = "go.mod" }]
+auto-format = true
+comment-token = "//"
+language-servers = [ "gopls" ]
+indent = { tab-width = 4, unit = "\t" }
+
+[[grammar]]
+name = "gomod"
+source = { git = "https://github.com/camdencheek/tree-sitter-go-mod", rev = "e8f51f8e4363a3d9a427e8f63f4c1bbc5ef5d8d0" }
+
+[[language]]
+name = "gotmpl"
+scope = "source.gotmpl"
+injection-regex = "gotmpl"
+file-types = ["gotmpl"]
+comment-token = "//"
+block-comment-tokens = { start = "/*", end = "*/" }
+language-servers = [ "gopls" ]
+indent = { tab-width = 2, unit = " " }
+
+[[grammar]]
+name = "gotmpl"
+source = { git = "https://github.com/dannylongeuay/tree-sitter-go-template", rev = "395a33e08e69f4155156f0b90138a6c86764c979" }
+
+[[language]]
+name = "gowork"
+scope = "source.gowork"
+injection-regex = "gowork"
+file-types = [{ glob = "go.work" }]
+auto-format = true
+comment-token = "//"
+language-servers = [ "gopls" ]
+indent = { tab-width = 4, unit = "\t" }
+
+[[grammar]]
+name = "gowork"
+source = { git = "https://github.com/omertuc/tree-sitter-go-work", rev = "6dd9dd79fb51e9f2abc829d5e97b15015b6a8ae2" }
+
+[language-server.typescript-language-server]
+command = "typescript-language-server"
+args = ["--stdio"]
+config.hostInfo = "helix"
+
+[language-server.typescript-language-server.config.typescript.inlayHints]
+includeInlayEnumMemberValueHints = true
+includeInlayFunctionLikeReturnTypeHints = true
+includeInlayFunctionParameterTypeHints = true
+includeInlayParameterNameHints = "all"
+includeInlayParameterNameHintsWhenArgumentMatchesName = true
+includeInlayPropertyDeclarationTypeHints = true
+includeInlayVariableTypeHints = true
+
+[language-server.typescript-language-server.config.javascript.inlayHints]
+includeInlayEnumMemberValueHints = true
+includeInlayFunctionLikeReturnTypeHints = true
+includeInlayFunctionParameterTypeHints = true
+includeInlayParameterNameHints = "all"
+includeInlayParameterNameHintsWhenArgumentMatchesName = true
+includeInlayPropertyDeclarationTypeHints = true
+includeInlayVariableTypeHints = true
+
+[language-server.vscode-eslint-language-server]
+command = "vscode-eslint-language-server"
+args = ["--stdio"]
+
+[language-server.vscode-eslint-language-server.config]
+validate = "on"
+experimental = { useFlatConfig = false }
+rulesCustomizations = []
+run = "onType"
+problems = { shortenToSingleLine = false }
+nodePath = ""
+
+[language-server.vscode-eslint-language-server.config.codeAction.disableRuleComment]
+enable = true
+location = "separateLine"
+
+[language-server.vscode-eslint-language-server.config.codeAction.showDocumentation]
+enable = true
+
+[language-server.vscode-eslint-language-server.config.workingDirectory]
+mode = "location"
+
+[[sources]] # list of sources to load
+name = "friendly-snippets"                                  # optional name shown on snippet description
+git = "https://github.com/rafamadriz/friendly-snippets.git" # git repo with snippets collections
+
+
+[[language]]
+name = "typescript"
+language-servers = [
+  "typescript-language-server",
+  "tailwindcss-react",
+  "eslint",
+  "emmet-ls",
+  "scls",
+  "gpt",
+]
+formatter = { command = 'npx', args = ["prettier", "--parser", "typescript"] }
+auto-format = true
+
+[[language]]
+name = "tsx"
+language-servers = [
+  "typescript-language-server",
+  "tailwindcss-react",
+  "eslint",
+  "emmet-ls",
+  "scls",
+  "gpt",
+]
+formatter = { command = 'npx', args = ["prettier", "--parser", "typescript"] }
+auto-format = true
+
+[[language]]
+name = "jsx"
+language-servers = [
+  "typescript-language-server",
+  "tailwindcss-react",
+  "eslint",
+  "emmet-ls",
+  "scls",
+  "gpt",
+]
+grammar = "javascript"
+formatter = { command = 'npx', args = ["prettier", "--parser", "typescript"] }
+auto-format = true
+
+[[language]]
+name = "javascript"
+language-servers = [
+  "typescript-language-server",
+  "tailwindcss-react",
+  "eslint",
+  "emmet-ls",
+  "scls",
+  "gpt",
+]
+formatter = { command = 'npx', args = ["prettier", "--parser", "typescript"] }
+auto-format = true
+
+[[language]]
+name = "json"
+language-servers = ["vscode-json-language-server"]
+formatter = { command = 'npx', args = ["prettier", "--parser", "json"] }
+auto-format = true
+
+
+[[language]]
+name = "html"
+formatter = { command = 'npx', args = ["prettier", "--parser", "html"] }
+language-servers = [
+  "vscode-html-language-server",
+  "tailwindcss-react",
+  "emmet-ls",
+]
+auto-format = true
+
+
+[[language]]
+name = "css"
+formatter = { command = 'npx', args = ["prettier", "--parser", "css"] }
+language-servers = [
+  "vscode-css-language-server",
+  "tailwindcss-react",
+  "emmet-ls",
+]
+auto-format = true
+
+[[language]]
+name = "scss"
+formatter = { command = "prettier", args = ["--stdin-filepath", "dummy.scss"] }
+language-servers = ["vscode-css-language-server", "gpt"]
+
+
+[language-server.emmet-ls]
+args = ["--stdio"]
+command = "emmet-language-server"
+
+[language-server.eslint]
+args = ["--stdio"]
+command = "vscode-eslint-language-server"
+
+[language-server.eslint.config]
+format = { enable = true }
+nodePath = ""
+quiet = false
+rulesCustomizations = []
+run = "onType"
+validate = "on"
+codeAction = { disableRuleComment = { enable = true, location = "separateLine" }, showDocumentation = { enable = false } }
+codeActionsOnSave = { mode = "all", "source.fixAll.eslint" = true }
+experimental = {}
+problems = { shortenToSingleLine = false }
+
+[language-server.tailwindcss-react]
+language-id = "typescriptreact"
+command = "tailwindcss-language-server"
+args = ["--stdio"]
+config = {}
+
+[language-server.astro-ls]
+command = "astro-ls"
+args = ["--stdio"]
+config = { typescript = { tsdk = "/Users/ali/Desktop/projects/taby-frontend-2023/node_modules/typescript/lib" }, environment = "node" }
+
+[[language]]
+name = "astro"
+scope = "source.astro"
+injection-regex = "astro"
+file-types = ["astro"]
+language-servers = ["astro-ls"]
+formatter = { command = "prettier", args = [
+  "--plugin",
+  "prettier-plugin-astro",
+  "--parser",
+  "astro",
+] }
+auto-format = true
+
+
+[[language]]
+name = "tfvars"
+language-servers = [ "terraform-ls" ]
+language-id = "terraform-vars"
+
+
+[[language]]
+name = "python"
+language-servers = ["pyright", "ruff", "pylyzer"]
+[language-server.pyright.config.python.analysis]
+typeCheckingMode = "basic"
+
+[language-server.pylyzer]
+command = "pylyzer"
+args = ["--server"]
+
+[language-server.pyright]
+command = "pyright-langserver"
+args = ["--stdio"]
+
+[language-server.pyright.config]
+lint = true
+inlayHint.enable = true
+
+[language-server.ruff-lsp]
+command = "ruff-lsp"
+[[language]]
+name = "python"
+scope ="source.python"
+auto-format = true
+indent = { tab-width = 4, unit = " " }
+formatter = { command = "black", args = ["-", "-q"] }
+roots = ["pyproject.toml", "pyrightconfig.json", "Poetry.lock"]
+language-servers = [
+    { name = "pyright" },
+    { name = "ruff-lsp" },
+]
+
+[tool.ruff]
+extend-select = ["A", "B", "C4", "D", "I", "ERA", "PLR", "SIM", "TCH", "ANN"]
+show-fixes = true
+line-length=119
+
+
