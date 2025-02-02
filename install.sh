@@ -21,3 +21,22 @@ is_ubuntu() {
         echo "OS not ubuntu. exit. :/ "
     fi
 }
+
+header() {
+
+    clear
+
+    echo -e "${ORANGE}
+     ###############################################
+     #   Dotfiles / Linux                          #
+     #   Author: Zandler <zandler@outlook.com>     #
+     #   Version: 0.9                              #
+     #   $(date +'%d/%m/%Y')                                # 
+     ###############################################${ENDCOLOR}"
+
+    sleep 5
+    clear
+}
+
+header 
+is_ubuntu
