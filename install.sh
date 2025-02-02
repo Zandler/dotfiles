@@ -7,7 +7,7 @@ clone_repo() {
 }
 
 exec_bootstrap() {
-    cd $HOME && ./dotfiles/bootstrap.sh
+    cd $HOME/.dotfiles && ./bootstrap.sh
 }
 
 
