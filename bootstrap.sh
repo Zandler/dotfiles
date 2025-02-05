@@ -89,22 +89,14 @@ install_snap_packages() {
     SOFTWARES=(
             "kubectx"
             "terraform"
-            "go"
-            "golangci-lint"
-            "goreleaser"
-            "gosec"
-            "gomodrun"
-            "goimports-reviser"
             "helix"
             "helm"
             "k9s"
-            "ruff"
-            "pylsp"
-            "black"
             "aws-cli"
             "terragrunt"
             "dotnet-sdk --channel=lts/stable"
             "httpie"
+            "k6"
             )
 
         clear
@@ -122,47 +114,6 @@ install_snap_packages() {
         echo "Finish"
 
         sleep 3
-}
-
-install_python() {
-    check_command "pyenv"
-    if [ $? -eq 1 ]; then
-        echo "Installing pyenv"
-        curl https://pyenv.run | bash
-    fi 
-
-    check_command "poetry"
-    if [ $? -eq 1 ]; then
-        echo "Installing poetry"
-        curl -sSL https://install.python-poetry.org | python3 -
-    fi
-
-    pip install black --break-system-packages
-    pip install pylyzer --break-system-packages
-    pip install pyright --break-system-packages
-    pip install ruff --break-system-packages
-}
-
-install_golang() {
-    go install golang.org/x/tools/gopls@latest                            # LSP
-    go install github.com/go-delve/delve/cmd/dlv@latest                   # Debugger
-    go install golang.org/x/tools/cmd/goimports@latest                    # Formatter
-    go install github.com/nametake/golangci-lint-langserver@latest        # Linter
-    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest # Linter cli
-    go install github.com/hidetatz/kubecolor/cmd/kubecolor@latest # kubecolor
-}
-
-install_terraform_ls() {
-    check_command "terraform-ls"
-
-    if [ $? -eq 1 ]; then 
-        echo "Terraform-ls nor foun. Installing..."
-        wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-        sudo apt update
-        sudo apt install terraform-ls
-    fi
-    echo -e "${ORANGE} Terraform already installed.${ENDOCLOR}"
 }
 
 install_nvm() {
@@ -325,9 +276,6 @@ header
 update_system
 install_apt_packages
 install_snap_packages
-install_python
-install_golang
-install_terraform_ls
 install_nvm
 install_docker
 config_terminal
