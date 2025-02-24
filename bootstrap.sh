@@ -66,6 +66,7 @@ install_apt_packages() {
         "fonts-jetbrains-mono"
         "eza"
         "kubecolor"
+        "python3-poetry"
         )
 
     clear
@@ -279,7 +280,7 @@ install_snap_packages
 install_nvm
 install_docker
 config_terminal
-
+install_npm_packages
 
 echo "SUCCESS. LOAD ZSH. ENJOY!!!!" 
 sleep 3
