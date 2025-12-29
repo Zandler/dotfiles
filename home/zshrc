@@ -126,15 +126,50 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-# PYENV
-export PYENV_ROOT="$HOME/.pyenv"
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH" 
-eval "$(pyenv init -)"
 
-# POETRY
-export POETRY_HOME="$HOME/.local/share/pypoetry/venv/bin"
- 
+# ALIAS 
+alias kubectl="kubecolor"
+
+# Lista
+alias ls='eza -lbGd --header --git --sort=modified --color=always --group-directories-first --icons'
+alias ll='eza --tree --level=2 --color=always --group-directories-first --icons'
+
+# KUBECTL
+# GET
+alias kgp='kubecolor get pods'
+alias kgs='kubecolor get services'
+alias kgd='kubecolor get deployments'
+alias kgn='kubecolor get nodes'
+alias kgi='kubecolor get ingress'
+alias kgns='kubecolor get namespaces'
+
+# DELETE
+alias kdp='kubecolor delete pod'
+alias kdd='kubecolor delete deployment'
+alias kds='kubecolor delete service'
+alias kdns='kubecolor delete namespace'
+alias kdi='kubecolor delete ingress'
+
+# DESCRIBE
+alias kdsp='kubecolor describe pod'
+alias kdsd='kubecolor describe deployment'
+alias kdsn='kubecolor describe node'
+alias kdss='kubecolor describe service'
+alias kdsi='kubecolor describe ingress'
+alias kdnsd='kubecolor describe namespace'
+
+# CREATE
+alias kcr='kubecolor create -f'
+
+# EDIT
+alias ked='kubecolor edit deployment'
+alias kep='kubecolor edit pod'
+
+# RUN
+alias krun='kubecolor run'
+
+# EXEC
+alias kexec='kubecolor exec'
+
 # startship terminal
 eval "$(starship init zsh)"
-
-alias kubectl="kubecolor"

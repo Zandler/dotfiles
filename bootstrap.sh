@@ -66,7 +66,6 @@ install_apt_packages() {
         "fonts-jetbrains-mono"
         "eza"
         "kubecolor"
-        "python3-poetry"
         )
 
     clear
@@ -98,6 +97,7 @@ install_snap_packages() {
             "dotnet-sdk --channel=lts/stable"
             "httpie"
             "k6"
+            "astral-uv"
             )
 
         clear
