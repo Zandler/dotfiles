@@ -1,54 +1,80 @@
 #!/bin/bash
 
-check_command() {
-    echo "Check if $1 is installed"
+set -euo pipefail
 
-    if ! command -v $1 &> /dev/null; then 
-        return 1
-    else
-        return 0
-    fi
+# Colors
+ORANGE='\033[0;33m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+PURPLE='\033[0;35m'
+ENDCOLOR='\033[0m'
+
+# Init Values for folders (dotfiles and dotbot)
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DOTBOT_DIR="$BASEDIR/dotbot"
+
+log_info() {
+    echo -e "${GREEN}[INFO]${ENDCOLOR} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${ENDCOLOR} $1" >&2
+}
+
+log_warning() {
+    echo -e "${ORANGE}[WARNING]${ENDCOLOR} $1"
+}
+
+check_command() {
+    log_info "Checking if $1 is installed"
+    command -v "$1" &> /dev/null
 }
 
 header() {
-
     clear
-
     echo -e "${ORANGE}
      ###############################################
      #   Dotfiles / Linux                          #
      #   Author: Zandler <zandler@outlook.com>     #
-     #   Version: 0.9                              #
-     #   $(date +'%d/%m/%Y')                                # 
+     #   Version: 1.0                              #
+     #   $(date +'%d/%m/%Y')                       #
      ###############################################${ENDCOLOR}"
-
-    sleep 5
-    clear
+    echo
+    sleep 2
 }
 
 update_system() {
-    echo -e "${CYAN}Update packages...${ENDCOLOR}"
+    
+    clear && log_info "Updating system packages..."
     sudo apt update && sudo apt upgrade -y
 }
 
 dotbot_update() {
-    echo -e "${ORANGE}
-    Restore files with dotbot${ENDCOLOR}"
-    sleep 3
-
-    pushd "$DOTBOT_DIR" > /dev/null
-    git submodule update --init --recursive
-    popd > /dev/null
+    log_info "Updating dotbot submodules..."
+    if [ -d "$DOTBOT_DIR" ]; then
+        pushd "$DOTBOT_DIR" > /dev/null
+        git submodule update --init --recursive
+        popd > /dev/null
+    else
+        log_warning "Dotbot directory not found: $DOTBOT_DIR"
+    fi
 }
 
 dotbot_restore() {
-    echo -e "${CYAN} Restoring confg and files ${ENDCOLOR}"
-    "$DOTBOT_DIR/bin/dotbot" -d "${BASEDIR}" -c "$BASEDIR/install.conf.yaml"
+    log_info "Restoring config files with dotbot..."
+    if [ -f "$BASEDIR/install.conf.yaml" ] && [ -x "$DOTBOT_DIR/bin/dotbot" ]; then
+        "$DOTBOT_DIR/bin/dotbot" -d "${BASEDIR}" -c "$BASEDIR/install.conf.yaml"
+    else
+        log_error "Dotbot configuration or binary not found"
+        return 1
+    fi
 }
 
 install_apt_packages() {
-    
-    SOFTWARES=(
+    clear && log_info "Installing APT packages..."
+    sleep 2
+    local packages=(
         "build-essential"
         "gpg"
         "git"
@@ -66,223 +92,231 @@ install_apt_packages() {
         "fonts-jetbrains-mono"
         "eza"
         "kubecolor"
-        )
+    )
 
-    clear
-   echo -e "${CYAN}
-    #########################
-    #  INSTALL APT PACKAGES #
-    #########################${ENDCOLOR}"
-
-    sleep 3
-
-    for soft in "${SOFTWARES[@]}"; do 
-
-        sudo apt install -y $soft
+    log_info "Installing APT packages..."
+    
+    for package in "${packages[@]}"; do
+        if ! dpkg -l | grep -q "^ii  $package "; then
+            log_info "Installing $package..."
+            sudo apt install -y "$package" || log_warning "Failed to install $package"
+        else
+            log_info "$package already installed"
+        fi
     done
-    echo "Finish"
-
-    sleep 3
 }
 
 install_snap_packages() {
-    SOFTWARES=(
-            "kubectx"
-            "terraform"
-            "helix"
-            "helm"
-            "k9s"
-            "aws-cli"
-            "terragrunt"
-            "dotnet-sdk --channel=lts/stable"
-            "httpie"
-            "k6"
-            "astral-uv"
-            )
+    sleep 2
+    clear && log_info "Installing Snap packages..."
+    local packages=(
+        "kubectx"
+        "terraform"
+        "helix"
+        "helm"
+        "k9s"
+        "aws-cli"
+        "terragrunt"
+        "dotnet-sdk --channel=lts/stable"
+        "httpie"
+        "k6"
+        "astral-uv"
+    )
 
-        clear
-    echo -e "${CYAN}
-        ##########################
-        #  INSTALL SNAP PACKAGES #
-        ##########################${ENDCOLOR}"
-
-        sleep 3
-
-        for soft in "${SOFTWARES[@]}"; do 
-
-            sudo snap install $soft --classic
-        done
-        echo "Finish"
-
-        sleep 3
+    if ! command -v snap &> /dev/null; then
+        log_warning "Snap not available, skipping snap packages"
+        return 0
+    fi
+    
+    for package in "${packages[@]}"; do
+        local package_name=$(echo "$package" | cut -d' ' -f1)
+        if ! snap list | grep -q "$package_name"; then
+            log_info "Installing $package..."
+            sudo snap install $package --classic || log_warning "Failed to install $package"
+        else
+            log_info "$package_name already installed"
+        fi
+    done
 }
 
 install_nvm() {
-    clear 
-
-    echo -e "${CYAN}
-    ######################
-    #  NODE + NPM + YARN #
-    ######################${ENDCOLOR}"
-
-    sleep 3
-
-    # Verifica se o diretório do NVM existe
-    if [ ! -d "/home/"${HOME}"/.nvm" ]; then
-        echo "Install NVM..."
-        # Instala o NVM
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-
-        # Configura o NVM no arquivo .bashrc se não estiver configurado
-        if ! grep -q 'export NVM_DIR="$HOME/.nvm"' "$HOME/.bashrc"; then
-            echo 'Configurando NVM no .bashrc...'
-            echo 'export NVM_DIR="$HOME/.nvm"' >> "$HOME/.bashrc"
-            echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> "$HOME/.bashrc"
-            echo '[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"' >> "$HOME/.bashrc"
-        fi
-
-        # Carrega o NVM no ambiente atual
-        export NVM_DIR="$HOME/.nvm"
+    log_info "Setting up Node.js with NVM..."
+    
+    local nvm_dir="$HOME/.nvm"
+    
+    if [ ! -d "$nvm_dir" ]; then
+        log_info "Installing NVM..."
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        
+        # Load NVM
+        export NVM_DIR="$nvm_dir"
         [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
         [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
-        echo "${PURPLE}NVM installed.${ENDCOLOR}"
-        sleep 3
-        # Instala versão LTS node
-        nvm install node
-        # Instala versão mais atual npm
-        nvm install-latest-npm
-
-       source "$HOME/.zshrc"
+        
+        log_info "Installing Node.js LTS..."
+        nvm install --lts
+        nvm use --lts
+        nvm alias default node
     else
-        echo "NVM already installed"
+        log_info "NVM already installed"
+        export NVM_DIR="$nvm_dir"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    fi
+}
+
+install_npm_packages() {
+    local packages=(
+        "autoprefixer"
+        "postcss-cli"
+        "markdown-link-check"
+        "standard"
+        "yarn"
+        "@astrojs/language-server"
+        "bash-language-server"
+        "vscode-langservers-extracted"
+        "dockerfile-language-server-nodejs"
+        "sql-language-server"
+        "@tailwindcss/language-server"
+        "typescript"
+        "typescript-language-server"
+        "yaml-language-server@next"
+        "pyright"
+        "@microsoft/compose-language-service"
+    )
+
+    if ! check_command npm; then
+        log_warning "npm not found, skipping npm packages"
+        return 0
     fi
 
-    echo "Node step finish"
+    log_info "Installing npm packages globally..."
+    
+    for package in "${packages[@]}"; do
+        log_info "Installing $package..."
+        npm install -g "$package" || log_warning "Failed to install $package"
+    done
 }
 
-# TODO: Craate for loop
-install_npm_packages() {
-
-    npm install -g autoprefixer postcss-cli
-    npm install -g markdown-link-check
-    npm install -g standard
-    npm install -g yarn 
-    npm install -g @astrojs/language-server
-    npm install -g bash-language-server
-    npm install -g vscode-langservers-extracted
-    npm install -g dockerfile-language-server-nodejs
-    npm install -g sql-language-server
-    npm install -g @tailwindcss/language-server
-    npm install -g typescript typescript-language-server
-    npm install -g vscode-langservers-extracted@4.8
-    npm install -g yaml-language-server@next
-    npm install -g pyright
-    npm install -g @microsoft/compose-language-service
-    npm install -g dockerfile-language-server-nodejs
-    npm i -g vscode-langservers-extracted
-    npm i -g yaml-language-server@next
+install_oh_my_zsh() {
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        log_info "Installing Oh My Zsh..."
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    else
+        log_info "Oh My Zsh already installed"
+    fi
 }
 
-oh-my-zsh() {
-      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended 
+install_starship() {
+    if ! check_command starship; then
+        log_info "Installing Starship prompt..."
+        curl -sS https://starship.rs/install.sh | sh -s -- -y
+    else
+        log_info "Starship already installed"
+    fi
 }
 
-starship() {
-    curl -sS https://starship.rs/install.sh | sh
-}
-
-zsh_plugins() {
-    git clone https://github.com/zsh-users/zsh-autosuggestions.git $HOME/.oh-my-zsh/plugins/zsh-autosuggestions
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git $HOME/.oh-my-zsh/plugins/zsh-syntax-highlighting
-    git clone https://github.com/zdharma-continuum/fast-syntax-highlighting.git $HOME/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
-    git clone --depth 1 -- https://github.com/marlonrichert/zsh-autocomplete.git $HOME/.oh-my-zsh/plugins/zsh-autocomplete
+install_zsh_plugins() {
+    local plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
+    
+    declare -A plugins=(
+        ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
+        ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        ["fast-syntax-highlighting"]="https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
+        ["zsh-autocomplete"]="https://github.com/marlonrichert/zsh-autocomplete.git"
+    )
+    
+    for name in "${!plugins[@]}"; do
+        local url="${plugins[$name]}"
+        local plugin_dir="$plugins_dir/$name"
+        
+        if [ ! -d "$plugin_dir" ]; then
+            log_info "Installing zsh plugin: $name"
+            git clone --depth 1 "$url" "$plugin_dir"
+        else
+            log_info "Zsh plugin $name already installed"
+        fi
+    done
 }
 
 config_terminal() {
-    echo "###################
-    # Config terminal # 
-    ###################"
-
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        echo "Oh-my-zsh not found, installing..."
-        oh-my-zsh 
-        zsh_plugins
+    log_info "Configuring terminal..."
+    
+    install_oh_my_zsh
+    install_zsh_plugins
+    install_starship
+    
+    if check_command zsh; then
+        log_info "Setting zsh as default shell..."
+        sudo chsh -s "$(which zsh)" "$USER" || log_warning "Failed to change default shell"
     fi
-
-    starship
-    chsh -s $(which zsh)
+    
     dotbot_update
     dotbot_restore
 }
 
 install_docker() {
-    clear 
-
-    echo -e "${PURPLE}
-    ######################
-    #  Instalacao Docker #
-    ######################${ENDCOLOR}"
-
-    sleep 3
-
-    echo "🐋 Verificando Docker"
-    # Verifica se o Docker está instalado
-    if ! command -v docker &> /dev/null; then
-        echo "Instalando Docker..."
-        # Atualiza os pacotes existentes
-        sudo apt update
-
-        # Instala as dependências necessárias para adicionar repositórios via HTTPS
-        sudo apt install -y \
-            apt-transport-https \
-            ca-certificates \
-            curl \
-            gnupg-agent \
-            software-properties-common
-
-        # Adiciona a chave GPG oficial do Docker
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-
-        # Adiciona o repositório estável do Docker
-        sudo add-apt-repository \
-            "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-            $(lsb_release -cs) \
-            stable"
-
-        # Instala o Docker Engine
-        sudo apt update
-        sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-        # Adiciona o usuário atual ao grupo docker para não precisar usar sudo
-        sudo usermod -aG docker $USER
-
-        # Inicia o serviço como sudo para validar 
-         sudo service docker start
-
-        echo "Docker instalado e configurado."
-    else
-        echo "Docker já está instalado."
-    fi 
+    if check_command docker; then
+        log_info "Docker already installed"
+        return 0
+    fi
+    
+    log_info "Installing Docker..."
+    
+    # Install dependencies
+    sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+    
+    # Add Docker GPG key
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    
+    # Add Docker repository
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    
+    # Install Docker
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    
+    # Add user to docker group
+    sudo usermod -aG docker "$USER"
+    
+    # Start Docker service
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    
+    log_info "Docker installed successfully"
 }
 
+change_to_zsh() {
+    if ! check_command zsh; then
+        log_error "Zsh not installed"
+        return 1
+    fi
+    
+    local current_shell=$(getent passwd "$USER" | cut -d: -f7)
+    local zsh_path=$(which zsh)
+    
+    if [ "$current_shell" = "$zsh_path" ]; then
+        log_info "Zsh is already the default shell"
+    else
+        log_info "Changing default shell to zsh..."
+        sudo chsh -s "$zsh_path" "$USER"
+        log_info "Default shell changed to zsh. Please log out and log back in."
+    fi
+    
+    log_info "Starting zsh session..."
+    exec zsh
+}
 
-# Init Values for folders (dotfiles and dotbot)
-BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DOTBOT_DIR="$BASEDIR/dotbot"
-
-# TODO: Create a option choice for SRE, frontend, backend
-# If you dont need some thing , just comment e run again
-header
-update_system
-install_apt_packages
-install_snap_packages
-install_nvm
-install_docker
-config_terminal
-install_npm_packages
-
-echo "SUCCESS. LOAD ZSH. ENJOY!!!!" 
-sleep 3
-
-zsh
+main() {
+    header
+    update_system
+    install_apt_packages
+    install_snap_packages
+    install_nvm
+    install_docker
+    config_terminal
+    install_npm_packages
+    
+    log_info "Bootstrap completed successfully!"
+    change_to_zsh
+}
+main "$@"
