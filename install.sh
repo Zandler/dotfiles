@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+#set -euo pipefail
 
 # Colors
 ORANGE='\033[0;33m'
@@ -105,7 +105,7 @@ main() {
     is_ubuntu
     check_dependencies
     clone_repo
-   # exec_bootstrap
+    exec_bootstrap
     log_info "Installation completed successfully!"
 }
 
