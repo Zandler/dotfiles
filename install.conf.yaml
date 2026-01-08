@@ -17,6 +17,6 @@
     ~/.config/starship.toml: config/starship.toml
     ~/.config/helix: config/helix
     ~/.gitconfig: home/gitconfig
-    ~/.gitignore: home/gitignore
+    ~/.gitignore: home/.gitignore
   
     

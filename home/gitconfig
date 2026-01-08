@@ -1,0 +1,30 @@
+[user]
+    name = Zandler
+    email = zandler@outlook.com
+
+[core]
+    editor = vim
+    autocrlf = input
+    excludesfile = ~/.gitignore
+
+[init]
+    defaultBranch = main
+
+[push]
+    autoSetupRemote = true
+
+[pull]
+    rebase = true
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    unstage = reset HEAD --
+    last = log -1 HEAD
+    visual = !gitk
+    graph = log --oneline --graph --decorate --all
+
+[credential]
+    helper = osxkeychain
