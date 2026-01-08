@@ -25,11 +25,50 @@ check_dependencies() {
     sleep 2
     if ! command -v git &> /dev/null; then
         log_error "Git is not installed. Installing"
-        sudo apt update && sudo apt install -y git || {
-            log_error "Failed to install Git"
-            exit 1
-        }
-        exit 1
+        local pkg_manager=$(get_package_manager)
+        
+        case "$pkg_manager" in
+            "brew")
+                brew install git || {
+                    log_error "Failed to install Git"
+                    exit 1
+                }
+                ;;
+            "apt")
+                sudo apt update && sudo apt install -y git || {
+                    log_error "Failed to install Git"
+                    exit 1
+                }
+                ;;
+            "dnf")
+                sudo dnf install -y git || {
+                    log_error "Failed to install Git"
+                    exit 1
+                }
+                ;;
+            "yum")
+                sudo yum install -y git || {
+                    log_error "Failed to install Git"
+                    exit 1
+                }
+                ;;
+            "pacman")
+                sudo pacman -S --noconfirm git || {
+                    log_error "Failed to install Git"
+                    exit 1
+                }
+                ;;
+            "zypper")
+                sudo zypper install -y git || {
+                    log_error "Failed to install Git"
+                    exit 1
+                }
+                ;;
+            *)
+                log_error "Unsupported package manager for Git installation"
+                exit 1
+                ;;
+        esac
     fi
     log_info "Git is installed."
 }
@@ -71,30 +110,143 @@ exec_bootstrap() {
     }
 }
 
-is_ubuntu() {
-    clear && log_info "Checking OS version..."
-    if [ ! -f "/etc/os-release" ]; then
-        log_error "Cannot determine OS version"
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            case "$ID" in
+                ubuntu|debian|pop)
+                    echo "debian"
+                    ;;
+                fedora|centos|rhel|rocky|almalinux)
+                    echo "redhat"
+                    ;;
+                arch|manjaro)
+                    echo "arch"
+                    ;;
+                opensuse*)
+                    echo "suse"
+                    ;;
+                *)
+                    echo "unknown"
+                    ;;
+            esac
+        else
+            echo "unknown"
+        fi
+    else
+        echo "unknown"
+    fi
+}
+
+get_package_manager() {
+    local os=$(detect_os)
+    case "$os" in
+        "macos")
+            if command -v brew &> /dev/null; then
+                echo "brew"
+            else
+                echo "brew_missing"
+            fi
+            ;;
+        "debian")
+            echo "apt"
+            ;;
+        "redhat")
+            if command -v dnf &> /dev/null; then
+                echo "dnf"
+            elif command -v yum &> /dev/null; then
+                echo "yum"
+            else
+                echo "unknown"
+            fi
+            ;;
+        "arch")
+            echo "pacman"
+            ;;
+        "suse")
+            echo "zypper"
+            ;;
+        *)
+            echo "unknown"
+            ;;
+    esac
+}
+
+check_supported_os() {
+    clear && log_info "Checking OS compatibility..."
+    local os=$(detect_os)
+    local pkg_manager=$(get_package_manager)
+    
+    if [ "$os" = "unknown" ]; then
+        log_error "Unsupported operating system"
         exit 1
     fi
     
-    if grep -q "ID=ubuntu" /etc/os-release; then
-        log_info "Ubuntu detected. Proceeding with installation..."
-        return 0
-    else
-        log_error "This script is designed for Ubuntu only"
+    if [ "$pkg_manager" = "unknown" ] || [ "$pkg_manager" = "brew_missing" ]; then
+        log_error "No supported package manager found"
+        if [ "$pkg_manager" = "brew_missing" ]; then
+            log_info "Please install Homebrew first: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+        fi
         exit 1
     fi
+    
+    local os_name="Unknown"
+    case "$os" in
+        "macos")
+            os_name="macOS"
+            ;;
+        "debian")
+            os_name="Debian/Ubuntu"
+            ;;
+        "redhat")
+            os_name="RedHat/Fedora"
+            ;;
+        "arch")
+            os_name="Arch Linux"
+            ;;
+        "suse")
+            os_name="openSUSE"
+            ;;
+    esac
+    
+    log_info "$os_name detected with $pkg_manager package manager. Proceeding with installation..."
 }
 
 header() {
     clear
+    local os=$(detect_os)
+    local os_name="Linux"
+    
+    case "$os" in
+        "macos")
+            os_name="macOS"
+            ;;
+        "debian")
+            os_name="Debian/Ubuntu"
+            ;;
+        "redhat")
+            os_name="RedHat/Fedora"
+            ;;
+        "arch")
+            os_name="Arch Linux"
+            ;;
+        "suse")
+            os_name="openSUSE"
+            ;;
+        *)
+            os_name="Unknown OS"
+            ;;
+    esac
+    
     echo -e "${ORANGE}
      ###############################################
-     #   Dotfiles / Linux                          #
+     #   Dotfiles / $os_name                       #
      #   Author: Zandler <zandler@outlook.com>     #
      #   Version: 1.0                              #
-     #   $(date +'%d/%m/%Y')                                #
+     #   $(date +'%d/%m/%Y')                       #
      ###############################################${ENDCOLOR}"
     echo
     sleep 2
@@ -102,7 +254,7 @@ header() {
 
 main() {
     header
-    is_ubuntu
+    check_supported_os
     check_dependencies
     clone_repo
     exec_bootstrap

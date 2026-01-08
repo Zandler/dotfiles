@@ -27,15 +27,103 @@ log_warning() {
 }
 
 check_command() {
-    log_info "Checking if $1 is installed"
     command -v "$1" &> /dev/null
+}
+
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if [ -f /etc/os-release ]; then
+            . /etc/os-release
+            case "$ID" in
+                ubuntu|debian|pop)
+                    echo "debian"
+                    ;;
+                fedora|centos|rhel|rocky|almalinux)
+                    echo "redhat"
+                    ;;
+                arch|manjaro)
+                    echo "arch"
+                    ;;
+                opensuse*)
+                    echo "suse"
+                    ;;
+                *)
+                    echo "unknown"
+                    ;;
+            esac
+        else
+            echo "unknown"
+        fi
+    else
+        echo "unknown"
+    fi
+}
+
+get_package_manager() {
+    local os=$(detect_os)
+    case "$os" in
+        "macos")
+            if check_command brew; then
+                echo "brew"
+            else
+                echo "brew_missing"
+            fi
+            ;;
+        "debian")
+            echo "apt"
+            ;;
+        "redhat")
+            if check_command dnf; then
+                echo "dnf"
+            elif check_command yum; then
+                echo "yum"
+            else
+                echo "unknown"
+            fi
+            ;;
+        "arch")
+            echo "pacman"
+            ;;
+        "suse")
+            echo "zypper"
+            ;;
+        *)
+            echo "unknown"
+            ;;
+    esac
 }
 
 header() {
     clear
+    local os=$(detect_os)
+    local os_name="Linux"
+    
+    case "$os" in
+        "macos")
+            os_name="macOS"
+            ;;
+        "debian")
+            os_name="Debian/Ubuntu"
+            ;;
+        "redhat")
+            os_name="RedHat/Fedora"
+            ;;
+        "arch")
+            os_name="Arch Linux"
+            ;;
+        "suse")
+            os_name="openSUSE"
+            ;;
+        *)
+            os_name="Unknown OS"
+            ;;
+    esac
+    
     echo -e "${ORANGE}
      ###############################################
-     #   Dotfiles / Linux                          #
+     #   Dotfiles / $os_name                       #
      #   Author: Zandler <zandler@outlook.com>     #
      #   Version: 1.0                              #
      #   $(date +'%d/%m/%Y')                       #
@@ -45,9 +133,33 @@ header() {
 }
 
 update_system() {
-    
     clear && log_info "Updating system packages..."
-    sudo apt update && sudo apt upgrade -y
+    local pkg_manager=$(get_package_manager)
+    
+    case "$pkg_manager" in
+        "brew")
+            brew update && brew upgrade
+            ;;
+        "apt")
+            sudo apt update && sudo apt upgrade -y
+            ;;
+        "dnf")
+            sudo dnf update -y
+            ;;
+        "yum")
+            sudo yum update -y
+            ;;
+        "pacman")
+            sudo pacman -Syu --noconfirm
+            ;;
+        "zypper")
+            sudo zypper refresh && sudo zypper update -y
+            ;;
+        *)
+            log_error "Unsupported package manager: $pkg_manager"
+            return 1
+            ;;
+    esac
 }
 
 dotbot_update() {
@@ -71,9 +183,64 @@ dotbot_restore() {
     fi
 }
 
-install_apt_packages() {
-    clear && log_info "Installing APT packages..."
+install_system_packages() {
+    clear && log_info "Installing system packages..."
     sleep 2
+    local pkg_manager=$(get_package_manager)
+    local os=$(detect_os)
+    
+    case "$os" in
+        "macos")
+            install_brew_packages
+            ;;
+        "debian")
+            install_apt_packages
+            ;;
+        "redhat")
+            install_dnf_packages
+            ;;
+        "arch")
+            install_pacman_packages
+            ;;
+        "suse")
+            install_zypper_packages
+            ;;
+        *)
+            log_error "Unsupported operating system"
+            return 1
+            ;;
+    esac
+}
+
+install_brew_packages() {
+    local packages=(
+        "git"
+        "vim"
+        "zsh"
+        "curl"
+        "htop"
+        "tree"
+        "wget"
+        "python3"
+        "font-jetbrains-mono"
+        "eza"
+        "kubecolor"
+        "gnupg"
+    )
+
+    log_info "Installing Homebrew packages..."
+    
+    for package in "${packages[@]}"; do
+        if ! brew list "$package" &> /dev/null; then
+            log_info "Installing $package..."
+            brew install "$package" || log_warning "Failed to install $package"
+        else
+            log_info "$package already installed"
+        fi
+    done
+}
+
+install_apt_packages() {
     local packages=(
         "build-essential"
         "gpg"
@@ -100,6 +267,96 @@ install_apt_packages() {
         if ! dpkg -l | grep -q "^ii  $package "; then
             log_info "Installing $package..."
             sudo apt install -y "$package" || log_warning "Failed to install $package"
+        else
+            log_info "$package already installed"
+        fi
+    done
+}
+
+install_dnf_packages() {
+    local packages=(
+        "@development-tools"
+        "gnupg2"
+        "git"
+        "vim"
+        "zsh"
+        "curl"
+        "htop"
+        "net-tools"
+        "tree"
+        "wget"
+        "python3"
+        "python3-pip"
+        "jetbrains-mono-fonts-all"
+        "eza"
+    )
+
+    log_info "Installing DNF packages..."
+    
+    for package in "${packages[@]}"; do
+        if ! rpm -q "$package" &> /dev/null; then
+            log_info "Installing $package..."
+            sudo dnf install -y "$package" || log_warning "Failed to install $package"
+        else
+            log_info "$package already installed"
+        fi
+    done
+}
+
+install_pacman_packages() {
+    local packages=(
+        "base-devel"
+        "gnupg"
+        "git"
+        "vim"
+        "zsh"
+        "curl"
+        "htop"
+        "net-tools"
+        "tree"
+        "wget"
+        "python"
+        "python-pip"
+        "ttf-jetbrains-mono"
+        "eza"
+    )
+
+    log_info "Installing Pacman packages..."
+    
+    for package in "${packages[@]}"; do
+        if ! pacman -Q "$package" &> /dev/null; then
+            log_info "Installing $package..."
+            sudo pacman -S --noconfirm "$package" || log_warning "Failed to install $package"
+        else
+            log_info "$package already installed"
+        fi
+    done
+}
+
+install_zypper_packages() {
+    local packages=(
+        "development-tools"
+        "gpg2"
+        "git"
+        "vim"
+        "zsh"
+        "curl"
+        "htop"
+        "net-tools-deprecated"
+        "tree"
+        "wget"
+        "python3"
+        "python3-pip"
+        "jetbrains-mono-fonts"
+        "eza"
+    )
+
+    log_info "Installing Zypper packages..."
+    
+    for package in "${packages[@]}"; do
+        if ! rpm -q "$package" &> /dev/null; then
+            log_info "Installing $package..."
+            sudo zypper install -y "$package" || log_warning "Failed to install $package"
         else
             log_info "$package already installed"
         fi
@@ -218,15 +475,20 @@ install_starship() {
 install_zsh_plugins() {
     local plugins_dir="$HOME/.oh-my-zsh/custom/plugins"
     
-    declare -A plugins=(
-        ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
-        ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-        ["fast-syntax-highlighting"]="https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
-        ["zsh-autocomplete"]="https://github.com/marlonrichert/zsh-autocomplete.git"
+    # Create plugins directory if it doesn't exist
+    mkdir -p "$plugins_dir"
+    
+    # Define plugins using simple arrays instead of associative arrays
+    local plugins=(
+        "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions.git"
+        "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        "fast-syntax-highlighting:https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
+        "zsh-autocomplete:https://github.com/marlonrichert/zsh-autocomplete.git"
     )
     
-    for name in "${!plugins[@]}"; do
-        local url="${plugins[$name]}"
+    for plugin in "${plugins[@]}"; do
+        local name="${plugin%%:*}"
+        local url="${plugin#*:}"
         local plugin_dir="$plugins_dir/$name"
         
         if [ ! -d "$plugin_dir" ]; then
@@ -261,7 +523,42 @@ install_docker() {
     fi
     
     log_info "Installing Docker..."
+    local os=$(detect_os)
     
+    case "$os" in
+        "macos")
+            install_docker_macos
+            ;;
+        "debian")
+            install_docker_debian
+            ;;
+        "redhat")
+            install_docker_redhat
+            ;;
+        "arch")
+            install_docker_arch
+            ;;
+        "suse")
+            install_docker_suse
+            ;;
+        *)
+            log_error "Docker installation not supported for this OS"
+            return 1
+            ;;
+    esac
+}
+
+install_docker_macos() {
+    log_info "Installing Docker Desktop for Mac..."
+    if check_command brew; then
+        brew install --cask docker || log_warning "Failed to install Docker Desktop"
+        log_info "Docker Desktop installed. Please start it manually from Applications."
+    else
+        log_error "Homebrew not found. Please install Docker Desktop manually."
+    fi
+}
+
+install_docker_debian() {
     # Install dependencies
     sudo apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
     
@@ -274,6 +571,59 @@ install_docker() {
     # Install Docker
     sudo apt update
     sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    
+    # Add user to docker group
+    sudo usermod -aG docker "$USER"
+    
+    # Start Docker service
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    
+    log_info "Docker installed successfully"
+}
+
+install_docker_redhat() {
+    local pkg_manager=$(get_package_manager)
+    
+    # Install dependencies
+    sudo "$pkg_manager" install -y yum-utils device-mapper-persistent-data lvm2
+    
+    # Add Docker repository
+    sudo "$pkg_manager" config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    
+    # Install Docker
+    sudo "$pkg_manager" install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    
+    # Add user to docker group
+    sudo usermod -aG docker "$USER"
+    
+    # Start Docker service
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    
+    log_info "Docker installed successfully"
+}
+
+install_docker_arch() {
+    # Install Docker
+    sudo pacman -S --noconfirm docker
+    
+    # Add user to docker group
+    sudo usermod -aG docker "$USER"
+    
+    # Start Docker service
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    
+    log_info "Docker installed successfully"
+}
+
+install_docker_suse() {
+    # Add Docker repository
+    sudo zypper addrepo https://download.docker.com/linux/centos/docker-ce.repo
+    
+    # Install Docker
+    sudo zypper -n install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     
     # Add user to docker group
     sudo usermod -aG docker "$USER"
@@ -308,8 +658,19 @@ change_to_zsh() {
 
 main() {
     header
+    
+    # Check if package manager is available
+    local pkg_manager=$(get_package_manager)
+    if [ "$pkg_manager" = "unknown" ] || [ "$pkg_manager" = "brew_missing" ]; then
+        log_error "No supported package manager found"
+        if [ "$pkg_manager" = "brew_missing" ]; then
+            log_info "Please install Homebrew first: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+        fi
+        exit 1
+    fi
+    
     update_system
-    install_apt_packages
+    install_system_packages
     install_snap_packages
     install_nvm
     install_docker
@@ -319,4 +680,7 @@ main() {
     log_info "Bootstrap completed successfully!"
     change_to_zsh
 }
-main "$@"
+# Only run main if script is executed directly (not sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
