@@ -103,7 +103,7 @@ header() {
 main() {
     header
     is_ubuntu
-    check_dependencies
+  #  check_dependencies
     clone_repo
     exec_bootstrap
     log_info "Installation completed successfully!"
