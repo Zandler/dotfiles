@@ -311,7 +311,7 @@ main() {
     update_system
     install_apt_packages
     install_snap_packages
-    install_nvm
+   # install_nvm
     install_docker
     config_terminal
     install_npm_packages
