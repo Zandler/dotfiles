@@ -29,7 +29,7 @@ check_dependencies() {
             log_error "Failed to install Git"
             exit 1
         }
-        exit 1
+
     fi
     log_info "Git is installed."
 }
